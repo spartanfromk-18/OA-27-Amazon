@@ -1,0 +1,277 @@
+{
+  "meta": {
+    "title": "Amazon SDE Intern — Mock Online Assessment",
+    "subtitle": "Built on reported 2025–2026 question patterns",
+    "sections": [
+      { "id": "debug", "name": "Code Debugging", "minutes": 20, "note": "7 questions. Find the bug." },
+      { "id": "coding", "name": "Coding Assessment", "minutes": 70, "note": "2 problems. Write your approach and code." },
+      { "id": "corecs", "name": "Core CS MCQs", "minutes": 25, "note": "20 questions across OS, Linux, DBMS, Algorithms, Java." },
+      { "id": "reasoning", "name": "Logical Reasoning", "minutes": 20, "note": "10 questions. No going back." },
+      { "id": "worksim", "name": "Work Simulation", "minutes": 20, "note": "8 scenarios scored against Leadership Principles." },
+      { "id": "workstyle", "name": "Workstyles Assessment", "minutes": 10, "note": "12 paired statements. Consistency is the signal." }
+    ]
+  },
+
+  "debug": [
+    {
+      "id": "d1",
+      "prompt": "This should return the maximum subarray sum. It returns the wrong answer for all-negative arrays.",
+      "code": "int maxSubArray(int[] a) {\n    int best = 0;          // line 2\n    int cur = 0;\n    for (int v : a) {\n        cur = Math.max(v, cur + v);\n        best = Math.max(best, cur);\n    }\n    return best;\n}",
+      "options": [
+        "Line 2: `best` should be initialised to `a[0]`, not `0`",
+        "Line 5: should be `cur = cur + v`",
+        "Line 6: should be `best = cur`",
+        "The loop should start from index 1"
+      ],
+      "answer": 0,
+      "explain": "Initialising best to 0 means an all-negative array returns 0, which is not a valid subarray sum. Initialise best = a[0] (and cur = a[0], looping from index 1) so at least one element is always taken."
+    },
+    {
+      "id": "d2",
+      "prompt": "Binary search that should return the index of target, or -1. It infinite-loops on some inputs.",
+      "code": "int search(int[] a, int t) {\n    int lo = 0, hi = a.length - 1;\n    while (lo <= hi) {\n        int mid = (lo + hi) / 2;\n        if (a[mid] == t) return mid;\n        else if (a[mid] < t) lo = mid;      // line 6\n        else hi = mid;                       // line 7\n    }\n    return -1;\n}",
+      "options": [
+        "Line 4: overflow in `(lo + hi) / 2`",
+        "Lines 6 and 7: should be `lo = mid + 1` and `hi = mid - 1`",
+        "Line 3: should be `lo < hi`",
+        "Line 9: should return `lo`"
+      ],
+      "answer": 1,
+      "explain": "Without the +1 / -1 the window never shrinks when hi = lo + 1, so the loop spins forever. Overflow in (lo+hi)/2 is a real secondary issue — lo + (hi-lo)/2 is safer — but it does not cause the infinite loop."
+    },
+    {
+      "id": "d3",
+      "prompt": "Should count vowels in a string. Always returns 0.",
+      "code": "int countVowels(String s) {\n    int c = 0;\n    String v = \"aeiou\";\n    for (int i = 0; i < s.length(); i++) {\n        if (v.indexOf(s.charAt(i)) == -1) c++;   // line 5\n    }\n    return c;\n}",
+      "options": [
+        "Line 4: should be `i <= s.length()`",
+        "Line 5: the condition is inverted — should be `!= -1`",
+        "Line 3: missing uppercase vowels",
+        "Line 2: `c` should start at 1"
+      ],
+      "answer": 1,
+      "explain": "indexOf returns -1 when the char is NOT found. The condition counts consonants. It returns 0 only for all-vowel strings, but the logical bug is the inverted comparison."
+    },
+    {
+      "id": "d4",
+      "prompt": "Should reverse a linked list. Returns only the last node.",
+      "code": "Node reverse(Node head) {\n    Node prev = null, cur = head;\n    while (cur != null) {\n        Node next = cur.next;\n        cur.next = prev;\n        prev = cur;\n        cur = cur.next;        // line 7\n    }\n    return prev;\n}",
+      "options": [
+        "Line 9: should return `cur`",
+        "Line 5: should be `cur.next = next`",
+        "Line 7: should be `cur = next` — `cur.next` was just overwritten",
+        "Line 2: `prev` should start at `head`"
+      ],
+      "answer": 2,
+      "explain": "Line 5 already reassigned cur.next to prev, so line 7 walks backwards. Use the saved `next` reference."
+    },
+    {
+      "id": "d5",
+      "prompt": "Should return true if the array contains a duplicate. Returns false for [1,1].",
+      "code": "boolean hasDup(int[] a) {\n    Set<Integer> seen = new HashSet<>();\n    for (int v : a) {\n        seen.add(v);\n        if (seen.contains(v)) continue;   // line 5\n        return true;\n    }\n    return false;\n}",
+      "options": [
+        "Line 4 and 5 are in the wrong order — check membership before adding",
+        "Line 8: should return `true`",
+        "Line 2: should use a `List`",
+        "Line 5: `continue` should be `break`"
+      ],
+      "answer": 0,
+      "explain": "Adding first guarantees contains() is always true, so it always continues. Check `if (!seen.add(v)) return true;` — add() returns false when the element was already present."
+    },
+    {
+      "id": "d6",
+      "prompt": "Should compute n! for n >= 0. StackOverflowError for n = 0.",
+      "code": "long fact(int n) {\n    if (n == 1) return 1;      // line 2\n    return n * fact(n - 1);\n}",
+      "options": [
+        "Line 3: should be `fact(n)` ",
+        "Line 2: base case should be `n <= 1`",
+        "Line 1: return type should be `int`",
+        "Line 3: overflow for large n"
+      ],
+      "answer": 1,
+      "explain": "With n = 0 it recurses to -1, -2, ... forever. `n <= 1` (or n == 0) terminates correctly. Overflow past n = 20 is a real but separate concern."
+    },
+    {
+      "id": "d7",
+      "prompt": "Should remove all occurrences of a value from a list. Skips some elements.",
+      "code": "void removeAll(List<Integer> list, int val) {\n    for (int i = 0; i < list.size(); i++) {\n        if (list.get(i) == val) {\n            list.remove(i);      // line 4\n        }\n    }\n}",
+      "options": [
+        "Line 4: `remove(i)` shifts elements left, so `i` must be decremented after removal",
+        "Line 3: should use `.equals()`",
+        "Line 2: should iterate backwards only",
+        "Line 4: should be `list.remove(val)`"
+      ],
+      "answer": 0,
+      "explain": "After removing index i, the next element slides into position i but the loop increments past it. Fix with i-- after removal, or iterate backwards, or use an Iterator. Note: remove(int) vs remove(Object) is also a classic Java trap with boxed Integers."
+    }
+  ],
+
+  "coding": [
+    {
+      "id": "c1",
+      "title": "Minimum Array Operations",
+      "difficulty": "Medium",
+      "suggested": 25,
+      "statement": "Given an integer array arr, you may pick an index i and a value x where -10 <= x <= 10, and set arr[i] = x. Modify the array so that the sum of every subarray of length greater than 1 is non-negative. Return the minimum number of operations required.\n\nExample:\narr = [2, 5, -3, -1, 2]  ->  1\nSetting index 2 to 10 gives [2, 5, 10, -1, 2], where every subarray of length > 1 has a non-negative sum.\n\nConstraints: 1 <= arr.length <= 10^5, -10^9 <= arr[i] <= 10^9",
+      "source": "Reported in 2026 Amazon OA",
+      "hint": "Track a running cumulative sum. What must be true the moment it dips below zero?",
+      "approach": "Prefix sum with state reset. Walk the array accumulating a running sum. Whenever the running sum goes negative, that prefix already violates the constraint — count one operation and reset the running sum to 0. Any violating window must pass through such a dip, and repairing at the earliest dip lifts every window through that point.",
+      "complexity": "O(n) time, O(1) space",
+      "solution": "public int minOperations(int[] arr) {\n    long running = 0;\n    int ops = 0;\n    for (int v : arr) {\n        running += v;\n        if (running < 0) {\n            ops++;\n            running = 0;\n        }\n    }\n    return ops;\n}"
+    },
+    {
+      "id": "c2",
+      "title": "Server Allocation Cost",
+      "difficulty": "Medium-Hard",
+      "suggested": 35,
+      "statement": "You are given an array servers, where index i is a server ID and servers[i] is the number of idle instances on it. m customers arrive one at a time. Each customer picks the server with the most idle instances and rents exactly one instance from it. The cost charged to that customer is (max_instances + min_instances), where both values are measured across all servers BEFORE that customer's selection. After all m customers, return the total cumulative cost.\n\nExample:\nservers = [3, 1, 4], m = 3\nCustomer 1: max=4, min=1 -> cost 5. servers becomes [3,1,3]\nCustomer 2: max=3, min=1 -> cost 4. servers becomes [3,1,2]\nCustomer 3: max=3, min=1 -> cost 4.\nTotal = 13\n\nConstraints: 1 <= servers.length <= 10^5, 1 <= m <= 10^5",
+      "source": "Reported in 2026 Amazon OA",
+      "hint": "You need the maximum and the minimum of a changing multiset, quickly. What structure gives you both ends in log n?",
+      "approach": "Use a TreeMap<Integer,Integer> as a multiset: firstKey() is the min, lastKey() is the max, both O(log n). Read cost before mutating, then decrement the chosen max and reinsert. A dual max-heap/min-heap works too but requires lazy deletion to stay in sync, which is a common source of bugs — mention that trade-off out loud.",
+      "complexity": "O(m log n) time, O(n) space",
+      "solution": "public long totalCost(int[] servers, int m) {\n    TreeMap<Integer, Integer> ms = new TreeMap<>();\n    for (int s : servers) ms.merge(s, 1, Integer::sum);\n\n    long total = 0;\n    for (int c = 0; c < m; c++) {\n        int hi = ms.lastKey();\n        int lo = ms.firstKey();\n        total += (long) hi + lo;\n\n        if (ms.merge(hi, -1, Integer::sum) == 0) ms.remove(hi);\n        ms.merge(hi - 1, 1, Integer::sum);\n    }\n    return total;\n}"
+    }
+  ],
+
+  "corecs": [
+    { "topic": "OS", "q": "A process executes `fork()` three times sequentially. How many processes exist in total, including the original?", "options": ["4", "6", "8", "16"], "answer": 2, "explain": "Each fork doubles the process count: 2^3 = 8 total." },
+    { "topic": "OS", "q": "Which is NOT one of the four Coffman conditions for deadlock?", "options": ["Mutual exclusion", "Hold and wait", "Preemption", "Circular wait"], "answer": 2, "explain": "The fourth condition is NO preemption. Allowing preemption breaks deadlock." },
+    { "topic": "OS", "q": "Reference string 1,2,3,4,1,2,5 with 3 frames using FIFO. How many page faults?", "options": ["5", "6", "7", "9"], "answer": 2, "explain": "1,2,3 fault (3). 4 evicts 1 (4). 1 evicts 2 (5). 2 evicts 3 (6). 5 evicts 4 (7). Total 7." },
+    { "topic": "OS", "q": "A semaphore initialised to 3 allows how many processes into the critical section concurrently?", "options": ["1", "3", "Unlimited", "0"], "answer": 1, "explain": "A counting semaphore initialised to N permits N concurrent entries. Initialised to 1 it is a binary semaphore/mutex." },
+    { "topic": "Linux", "q": "`chmod 640 file.txt` gives which permissions?", "options": ["rw-r----- ", "rwxr-x---", "r--rw----", "rw-rw-r--"], "answer": 0, "explain": "6 = rw- (owner), 4 = r-- (group), 0 = --- (others)." },
+    { "topic": "Linux", "q": "Which command prints the number of lines in file.log containing the word ERROR?", "options": ["grep -c ERROR file.log", "grep -n ERROR file.log", "wc -l file.log", "cat file.log | ERROR"], "answer": 0, "explain": "-c counts matching lines. -n prefixes line numbers instead of counting." },
+    { "topic": "Linux", "q": "What is the difference between a hard link and a symbolic link?", "options": ["A hard link points to the same inode; a symlink stores a path and breaks if the target moves", "A symlink points to the same inode; a hard link stores a path", "There is no difference", "Hard links only work across filesystems"], "answer": 0, "explain": "Hard links share the inode and survive renames of the original. Symlinks store a path and dangle if the target is removed. Hard links cannot cross filesystems." },
+    { "topic": "Linux", "q": "`2>&1` in a shell command does what?", "options": ["Redirects stderr into stdout", "Redirects stdout into stderr", "Runs the command twice", "Sends output to file descriptor 21"], "answer": 0, "explain": "It duplicates fd 2 (stderr) onto fd 1 (stdout), so both flow to the same destination." },
+    { "topic": "DBMS", "q": "A relation has FDs A -> B and B -> C, with A as the primary key. What is the highest normal form it satisfies?", "options": ["1NF", "2NF", "3NF", "BCNF"], "answer": 1, "explain": "A -> B -> C is a transitive dependency on the key, which violates 3NF. It is in 2NF." },
+    { "topic": "DBMS", "q": "Which isolation level prevents dirty reads and non-repeatable reads but still allows phantom reads?", "options": ["READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE"], "answer": 2, "explain": "REPEATABLE READ locks rows already read but not ranges, so newly inserted rows matching the predicate can still appear." },
+    { "topic": "DBMS", "q": "Table A has 5 rows, Table B has 3 rows. How many rows does `SELECT * FROM A CROSS JOIN B` return?", "options": ["8", "15", "5", "3"], "answer": 1, "explain": "A cross join is the Cartesian product: 5 x 3 = 15." },
+    { "topic": "DBMS", "q": "Which is true of WHERE vs HAVING?", "options": ["WHERE filters rows before grouping; HAVING filters groups after aggregation", "HAVING filters rows before grouping", "They are interchangeable", "WHERE cannot be used with GROUP BY"], "answer": 0, "explain": "WHERE applies to individual rows pre-aggregation. HAVING applies to aggregate results post-GROUP BY." },
+    { "topic": "Algorithms", "q": "Worst-case time complexity of quicksort, and when it occurs?", "options": ["O(n log n), always", "O(n^2), when the pivot is always the smallest or largest element", "O(n^2), when the array is random", "O(n), on sorted input"], "answer": 1, "explain": "A maximally unbalanced partition at every level gives O(n^2). Sorted input with a first-element pivot triggers it." },
+    { "topic": "Algorithms", "q": "Solve T(n) = 2T(n/2) + n using the Master theorem.", "options": ["O(n)", "O(n log n)", "O(n^2)", "O(log n)"], "answer": 1, "explain": "a=2, b=2, so n^(log_b a) = n. f(n) = n matches, giving Case 2: O(n log n)." },
+    { "topic": "Algorithms", "q": "Why does Dijkstra's algorithm fail on graphs with negative edge weights?", "options": ["It runs forever", "Once a node is finalised it is never revisited, but a negative edge could later offer a shorter path", "It cannot handle directed graphs", "It requires a connected graph"], "answer": 1, "explain": "Dijkstra's greedy invariant assumes distances only grow as you extend a path. Negative edges break that, so use Bellman-Ford." },
+    { "topic": "Algorithms", "q": "Which structure gives O(1) average lookup but O(n) worst case?", "options": ["Balanced BST", "Hash table", "Heap", "Sorted array"], "answer": 1, "explain": "With every key colliding into one bucket, a hash table degenerates to a linked-list scan. Java 8+ converts long buckets to trees, softening this to O(log n)." },
+    { "topic": "Java", "q": "What does `new Integer(127) == new Integer(127)` evaluate to?", "options": ["true", "false", "Compile error", "Depends on the JVM"], "answer": 1, "explain": "`new` forces distinct objects, so reference comparison is false. Note that `Integer a = 127; Integer b = 127; a == b` IS true due to the Integer cache for -128..127." },
+    { "topic": "Java", "q": "Which collection maintains insertion order AND allows O(1) average lookup by key?", "options": ["HashMap", "TreeMap", "LinkedHashMap", "Hashtable"], "answer": 2, "explain": "LinkedHashMap keeps a doubly-linked list across entries for predictable iteration order while retaining hash lookup." },
+    { "topic": "Java", "q": "A method has a `return` in `try` and a `return` in `finally`. Which wins?", "options": ["The try block's return", "The finally block's return", "Compile error", "Both execute"], "answer": 1, "explain": "The finally block's return overrides and discards the try block's value. This is a well-known anti-pattern." },
+    { "topic": "Java", "q": "Which is a checked exception?", "options": ["NullPointerException", "IOException", "ArrayIndexOutOfBoundsException", "ArithmeticException"], "answer": 1, "explain": "IOException extends Exception and must be declared or caught. The others extend RuntimeException and are unchecked." }
+  ],
+
+  "reasoning": [
+    { "q": "Complete the series: 3, 7, 16, 35, 74, ?", "options": ["151", "153", "148", "160"], "answer": 1, "explain": "Rule: x2 then +1, +2, +3, +4, +5. 74x2 + 5 = 153." },
+    { "q": "If one program solves a problem of size N in X steps, and the algorithm is O(N^2), roughly how many steps for size 2N?", "options": ["2X", "4X", "X/2", "X^2"], "answer": 1, "explain": "Quadratic growth: doubling the input quadruples the work." },
+    { "q": "All engineers are problem solvers. Some problem solvers are designers. Which necessarily follows?", "options": ["Some engineers are designers", "All designers are engineers", "No valid conclusion about engineers and designers", "All problem solvers are engineers"], "answer": 2, "explain": "The overlap between problem solvers and designers may fall entirely outside the engineer subset, so nothing necessarily follows." },
+    { "q": "A is B's father. C is B's sister. D is C's mother. How is D related to A?", "options": ["Sister", "Wife", "Daughter", "Mother"], "answer": 1, "explain": "C and B share parents. D is their mother; A is their father. D is A's wife." },
+    { "q": "A server processes 240 requests in 4 minutes. Three identical servers process how many in 90 seconds?", "options": ["180", "240", "270", "300"], "answer": 2, "explain": "One server: 60 req/min. Three: 180 req/min. In 1.5 min: 270." },
+    { "q": "Facing north, you turn 90 degrees right, then 180 degrees, then 90 degrees left. Which way are you facing?", "options": ["North", "South", "East", "West"], "answer": 1, "explain": "North, turn right 90 = East. Turn 180 = West. Turn left 90 from West = South." },
+    { "q": "In a code, AMAZON is written as BNBAPO. How is CLOUD written?", "options": ["DMPVE", "DMPWE", "DNPVE", "EMPVE"], "answer": 0, "explain": "Each letter shifts +1. C->D, L->M, O->P, U->V, D->E = DMPVE." },
+    { "q": "Deploys succeed 80% of the time. Two independent deploys. Probability both succeed?", "options": ["0.8", "0.64", "0.16", "0.96"], "answer": 1, "explain": "0.8 x 0.8 = 0.64." },
+    { "q": "Five servers S1..S5 are in a rack. S3 is directly above S1. S5 is at the bottom. S2 is directly above S3. Which is at the top?", "options": ["S1", "S2", "S3", "S4"], "answer": 3, "explain": "Bottom to top: S5, S1, S3, S2, leaving S4 at the top." },
+    { "q": "A cache hit costs 2ms, a miss costs 50ms. With a 90% hit rate, what is the average latency?", "options": ["6.8ms", "7.4ms", "26ms", "4.8ms"], "answer": 0, "explain": "0.9(2) + 0.1(50) = 1.8 + 5 = 6.8ms." }
+  ],
+
+  "worksim": [
+    {
+      "scenario": "It is 4pm Friday. A monitoring alert shows 3% of checkout requests are failing with a 500 error. You have not touched that service. Your own feature is due Monday. What do you do first?",
+      "options": [
+        "Finish your feature — the checkout service belongs to another team",
+        "Check the error logs and recent deploys yourself, then post the specific finding in the team channel and flag the customer impact",
+        "Immediately page your manager and wait for direction",
+        "Post 'checkout looks broken?' in the channel and go back to your feature"
+      ],
+      "best": 1,
+      "explain": "Ownership plus Dive Deep. You gather evidence first so your escalation is actionable, and you surface customer impact rather than saying 'not my job'. Option 2 is passive; option 0 is the classic ownership failure; option 3 escalates with no information."
+    },
+    {
+      "scenario": "Your tech lead chose a caching approach you believe will not scale. You have benchmark data suggesting a problem at 10x load. The decision meeting is tomorrow.",
+      "options": [
+        "Stay quiet — you are an intern and the lead has more context",
+        "Raise it in the meeting with your benchmark data, ask what you might be missing, and if the decision stands, commit fully and help implement it",
+        "Email skip-level leadership about the concern",
+        "Implement it your own way and show it works later"
+      ],
+      "best": 1,
+      "explain": "Have Backbone; Disagree and Commit, done correctly: evidence-based, respectful, in the right forum, and with genuine commitment afterwards. Option 0 lacks backbone; option 2 skips the chain; option 3 is disagree-and-defy."
+    },
+    {
+      "scenario": "You shipped a change that silently broke a report used by an ops team. You notice it two days later. Nobody else has flagged it.",
+      "options": [
+        "Quietly fix it and say nothing since nobody noticed",
+        "Fix it, then tell your manager and the ops team what broke, for how long, what data was affected, and what guardrail you are adding",
+        "Wait to see if the ops team complains first",
+        "Fix it and mention it casually in standup weeks later"
+      ],
+      "best": 1,
+      "explain": "Ownership and Earn Trust require being vocally self-critical. Disclosing scope and duration lets the ops team assess whether they made decisions on bad data — that is the customer impact."
+    },
+    {
+      "scenario": "You have five things in your inbox: a customer-facing bug affecting orders, a teammate asking for a code review, your manager requesting a status update, a meeting starting in 10 minutes, and a request to update documentation.",
+      "options": [
+        "Handle them in the order they arrived",
+        "Triage the customer bug first, send a one-line ack to the review and status requests with an ETA, join the meeting, and defer the docs",
+        "Do the quick items first to clear the inbox, then the bug",
+        "Ask your manager to prioritise for you"
+      ],
+      "best": 1,
+      "explain": "Customer Obsession sets the order, but strong answers also acknowledge the others rather than dropping them silently. Clearing quick wins while customers are impacted is the wrong instinct."
+    },
+    {
+      "scenario": "A metric dashboard says feature adoption is 40%. A teammate insists from user calls that 'almost nobody uses it'. Which is your next move?",
+      "options": [
+        "Trust the dashboard — data beats anecdote",
+        "Trust the teammate — they talk to users",
+        "Verify the metric definition and query yourself, and check whether 'adoption' counts something different from active use",
+        "Escalate to the PM to decide"
+      ],
+      "best": 2,
+      "explain": "Dive Deep explicitly says leaders are skeptical when metrics and anecdote differ. Usually the metric definition is the culprit — e.g. counting one-time visits as adoption."
+    },
+    {
+      "scenario": "You are two days from a deadline and realise the proper fix needs a week. A hack would work but leaves a known edge case that could corrupt a small number of records.",
+      "options": [
+        "Ship the hack and file a follow-up ticket",
+        "Ship the hack silently to hit the date",
+        "Flag it now with the specific risk and record volume, propose either a scoped-down safe release or a short slip, and let the decision be made with full information",
+        "Miss the deadline without telling anyone until the day"
+      ],
+      "best": 2,
+      "explain": "Insist on the Highest Standards says defects must not get sent down the line. Data corruption is not an acceptable trade for a date, but the strong answer is transparent escalation with options, not a unilateral call."
+    },
+    {
+      "scenario": "A new intern on your team is struggling with the codebase and is falling behind, but has not asked for help.",
+      "options": [
+        "Stay out of it — their mentor's job",
+        "Offer a short pairing session, share the mental model of how the service fits together, and point them at the two docs that unblocked you",
+        "Report the concern to their manager",
+        "Do part of their task for them so the sprint is not affected"
+      ],
+      "best": 1,
+      "explain": "Hire and Develop the Best plus Earn Trust. Help them build capability rather than reporting them or doing the work for them."
+    },
+    {
+      "scenario": "Your manager asks for a solution to a vague requirement: 'make onboarding faster'. No metric, no scope.",
+      "options": [
+        "Start building the most obvious improvement immediately",
+        "Wait for a fully specified ticket",
+        "Identify the riskiest assumption, propose a measurable definition of 'faster' and a smallest-useful first slice, confirm it, then start",
+        "Design a full re-architecture of onboarding"
+      ],
+      "best": 2,
+      "explain": "Dive Deep plus Invent and Simplify plus Bias for Action. Clarify the highest-risk assumption and move with an explicit, reversible first step rather than either stalling or over-building."
+    }
+  ],
+
+  "workstyle": [
+    { "a": "I prefer to fully validate a plan before acting", "b": "I prefer to act on a reversible decision and adjust as I learn" },
+    { "a": "I focus deeply on my assigned scope", "b": "I look for problems outside my scope and pick them up" },
+    { "a": "I make decisions from data I gather myself", "b": "I rely on the judgement of experienced colleagues" },
+    { "a": "I raise disagreements immediately, even when uncomfortable", "b": "I preserve team harmony and raise concerns privately later" },
+    { "a": "I prefer detailed instructions before starting", "b": "I prefer an outcome and freedom on the method" },
+    { "a": "I ship something imperfect and iterate", "b": "I hold a release until quality is high" },
+    { "a": "I solve problems by digging into details myself", "b": "I solve problems by delegating and coordinating" },
+    { "a": "I am energised by ambiguous problems", "b": "I am energised by well-defined problems" },
+    { "a": "I openly share my own mistakes with the team", "b": "I resolve my mistakes quietly and move on" },
+    { "a": "I optimise for long-term maintainability", "b": "I optimise for shipping the current commitment" },
+    { "a": "I actively seek feedback that contradicts my view", "b": "I trust my judgement once I have decided" },
+    { "a": "I do whatever task is needed, including unglamorous work", "b": "I focus on high-leverage technical work" }
+  ]
+}
