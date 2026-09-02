@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgdmlld0JveD0iMCAwIDMyIDMyIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI3IiBmaWxsPSIjMGQwZDBmIi8+PHBhdGggZD0iTTE2IDZ2MTBsNyA0IiBzdHJva2U9IiNmNWE1MjQiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxMCIgc3Ryb2tlPSIjZjVhNTI0IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=" width="72" alt="OA Trainer logo" />
+<img src="Oa.png" width="72" alt="OA Trainer logo" />
 
 # OA Trainer
 **A high-fidelity, timed mock of the Amazon SDE Intern Online Assessment**
