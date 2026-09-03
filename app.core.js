@@ -18,20 +18,24 @@
   })();
 
   /* Leadership Principle mapping for the Workstyles section.
-     side = the statement whose selection indicates the principle. */
+     Both statements in every pair are genuine, positively-framed LP behaviors —
+     this is a forced choice between two principles, never a "principle vs. nothing"
+     choice. Encoding only one side (as the previous version did) silently implies
+     the other side is the "wrong" answer, which contradicts the section's own
+     design goal of reading consistency rather than correctness. */
   var WORKSTYLE_MAP = [
-    { side: 'b', lp: 'Bias for Action', tag: 'act and adjust' },
-    { side: 'b', lp: 'Ownership', tag: 'work outside your scope' },
-    { side: 'a', lp: 'Dive Deep', tag: 'self-gathered data' },
-    { side: 'a', lp: 'Have Backbone; Disagree and Commit', tag: 'raise disagreement early' },
-    { side: 'b', lp: 'Ownership', tag: 'outcome over instructions' },
-    { side: 'a', lp: 'Bias for Action', tag: 'ship and iterate' },
-    { side: 'a', lp: 'Dive Deep', tag: 'dig into details yourself' },
-    { side: 'a', lp: 'Invent and Simplify', tag: 'energised by ambiguity' },
-    { side: 'a', lp: 'Earn Trust', tag: 'share your mistakes' },
-    { side: 'a', lp: 'Insist on the Highest Standards', tag: 'long-term maintainability' },
-    { side: 'a', lp: 'Are Right, A Lot', tag: 'seek contradicting feedback' },
-    { side: 'a', lp: 'Ownership', tag: 'take unglamorous work' }
+    { a: { lp: 'Are Right, A Lot', tag: 'validate before committing' }, b: { lp: 'Bias for Action', tag: 'act and adjust' } },
+    { a: { lp: 'Deliver Results', tag: 'depth over breadth' }, b: { lp: 'Ownership', tag: 'work outside your scope' } },
+    { a: { lp: 'Dive Deep', tag: 'self-gathered data' }, b: { lp: 'Earn Trust', tag: 'lean on trusted expertise' } },
+    { a: { lp: 'Have Backbone; Disagree and Commit', tag: 'raise disagreement early' }, b: { lp: 'Earn Trust', tag: 'relationship-first candor' } },
+    { a: { lp: 'Insist on the Highest Standards', tag: 'well-specified execution' }, b: { lp: 'Ownership', tag: 'outcome over instructions' } },
+    { a: { lp: 'Bias for Action', tag: 'ship and iterate' }, b: { lp: 'Insist on the Highest Standards', tag: 'quality bar over speed' } },
+    { a: { lp: 'Dive Deep', tag: 'dig into details yourself' }, b: { lp: 'Hire and Develop the Best', tag: 'leverage and grow others' } },
+    { a: { lp: 'Invent and Simplify', tag: 'energised by ambiguity' }, b: { lp: 'Deliver Results', tag: 'execution against clear scope' } },
+    { a: { lp: 'Earn Trust', tag: 'share your mistakes' }, b: { lp: 'Ownership', tag: 'resolve and move on independently' } },
+    { a: { lp: 'Insist on the Highest Standards', tag: 'long-term maintainability' }, b: { lp: 'Deliver Results', tag: 'honor the current commitment' } },
+    { a: { lp: 'Are Right, A Lot', tag: 'seek contradicting feedback' }, b: { lp: 'Have Backbone; Disagree and Commit', tag: 'commit fully once decided' } },
+    { a: { lp: 'Ownership', tag: 'take unglamorous work' }, b: { lp: 'Deliver Results', tag: 'prioritise highest-leverage work' } }
   ];
 
   var LP_ORDER = [
@@ -42,7 +46,9 @@
     'Have Backbone; Disagree and Commit',
     'Insist on the Highest Standards',
     'Invent and Simplify',
-    'Are Right, A Lot'
+    'Are Right, A Lot',
+    'Deliver Results',
+    'Hire and Develop the Best'
   ];
 
   /* ---------- state ---------- */
@@ -934,12 +940,20 @@
     var list = items('workstyle');
     var ans = answersFor('workstyle');
     var counts = {},
-      totals = {};
+      totals = {},
+      byLp = {};
+    function track(lp, i, side) {
+      byLp[lp] = byLp[lp] || [];
+      byLp[lp].push({ i: i, side: side, matched: ans[i] === side });
+    }
     for (var i = 0; i < list.length; i++) {
       var m = WORKSTYLE_MAP[i];
-      totals[m.lp] = (totals[m.lp] || 0) + 1;
-      if (ans[i] === m.side) counts[m.lp] = (counts[m.lp] || 0) + 1;
-      else counts[m.lp] = counts[m.lp] || 0;
+      totals[m.a.lp] = (totals[m.a.lp] || 0) + 1;
+      totals[m.b.lp] = (totals[m.b.lp] || 0) + 1;
+      counts[m.a.lp] = (counts[m.a.lp] || 0) + (ans[i] === 'a' ? 1 : 0);
+      counts[m.b.lp] = (counts[m.b.lp] || 0) + (ans[i] === 'b' ? 1 : 0);
+      track(m.a.lp, i, 'a');
+      track(m.b.lp, i, 'b');
     }
     var rows = LP_ORDER.filter(function (lp) {
       return totals[lp];
@@ -965,32 +979,36 @@
       .map(function (q, i) {
         var m = WORKSTYLE_MAP[i];
         var picked = ans[i];
-        var aligned = picked === m.side;
+        var pickedLp = picked === 'a' ? m.a.lp : picked === 'b' ? m.b.lp : null;
         return (
           '<article class="review__item"><div class="review__head"><span class="badge">Pair ' +
           (i + 1) +
-          '</span><span class="badge ' +
-          (picked === null || picked === undefined
-            ? '">not answered'
-            : aligned
-              ? 'badge--accent">' + esc(m.lp)
-              : '">other side') +
+          '</span><span class="badge' +
+          (pickedLp ? ' badge--accent">' + esc(pickedLp) : '">not answered') +
           '</span></div>' +
           '<div class="review__row"><span class="review__key">Statement A</span><span class="review__val' +
           (picked === 'a' ? ' ok' : '') +
           '">' +
           md(q.a) +
-          '</span></div>' +
+          ' <em>(' +
+          esc(m.a.lp) +
+          ')</em></span></div>' +
           '<div class="review__row"><span class="review__key">Statement B</span><span class="review__val' +
           (picked === 'b' ? ' ok' : '') +
           '">' +
           md(q.b) +
-          '</span></div>' +
-          '<p class="explain">Choosing the <strong>' +
-          esc(m.tag) +
-          '</strong> statement indicates <strong>' +
-          esc(m.lp) +
-          '</strong>. Neither side is wrong; what matters is whether your answers across all twelve pairs tell one coherent story.</p></article>'
+          ' <em>(' +
+          esc(m.b.lp) +
+          ')</em></span></div>' +
+          '<p class="explain">Both statements are genuine leadership behaviors — Statement A reads as <strong>' +
+          esc(m.a.lp) +
+          '</strong> (' +
+          esc(m.a.tag) +
+          '), Statement B reads as <strong>' +
+          esc(m.b.lp) +
+          '</strong> (' +
+          esc(m.b.tag) +
+          '). Neither side is wrong; what matters is whether your answers across all twelve pairs tell one coherent story.</p></article>'
         );
       })
       .join('');
@@ -1004,7 +1022,75 @@
       '<div class="callout"><strong>What Amazon actually measures.</strong> Workstyles is not marked right or wrong. It is checked for internal consistency: the same trait is probed from several angles, and contradictory answers stand out far more than any single "wrong" choice. Do not try to guess the answer Amazon wants — answer as the engineer you actually are, and be ready to defend every leaning with a real story in the interview.</div>' +
       '<h2 class="panel__title" style="margin-top:var(--space-10)">Your choices</h2><div class="review">' +
       detail +
-      '</div>'
+      '</div>' +
+      barRaiserAudit(byLp)
+    );
+  }
+
+  /* Bar-Raiser-style read of the finished profile.
+     Deliberately does NOT tell the candidate which statement to pick — Workstyles
+     has no correct answer, and a uniform "impressive" profile is itself a red flag
+     to a trained interviewer. Instead this names, per principle, how confidently
+     the pattern reads and what story to have ready, so prep effort goes into
+     rehearsing real examples rather than reverse-engineering the instrument. */
+  function barRaiserAudit(byLp) {
+    var strong = [],
+      split = [],
+      single = [],
+      away = [];
+
+    LP_ORDER.forEach(function (lp) {
+      var entries = byLp[lp];
+      if (!entries || !entries.length) return;
+      var t = entries.length;
+      var c = entries.filter(function (e) {
+        return e.matched;
+      }).length;
+      var pairs = entries
+        .map(function (e) {
+          return e.i + 1;
+        })
+        .join(', ');
+      var ratio = c / t;
+      var row = { lp: lp, c: c, t: t, pairs: pairs, ratio: ratio };
+      if (t === 1) single.push(row);
+      else if (ratio >= 0.75) strong.push(row);
+      else if (ratio <= 0.25) away.push(row);
+      else split.push(row);
+    });
+
+    function li(row, kind) {
+      var head = '<strong>' + esc(row.lp) + '</strong> (' + row.c + '/' + row.t + ', Pair' + (row.t > 1 ? 's ' : ' ') + row.pairs + ')';
+      var body;
+      if (kind === 'strong') {
+        body =
+          'a repeated, consistent lean. Expect this to be the principle a Bar Raiser digs into hardest — have two distinct, specific stories ready, not one polished one. A strong lean with a weak or generic example under questioning reads worse than a mixed profile.';
+      } else if (kind === 'away') {
+        body =
+          'a repeated lean toward the other statement in every pair that touches it. That is a legitimate working style, not a defect — but if the role you are interviewing for leans on this principle, be ready to name one real time you did show it, even if it is not your default.';
+      } else if (kind === 'split') {
+        body =
+          'a mixed signal — you leaned each way at least once. Normal; few engineers are 100% consistent on any single trait. The thing to prepare for specifically is the pair where you leaned "against type" — a Bar Raiser who notices the split may ask about that exact pair, and an honest, specific answer lands far better than backpedaling toward the majority side.';
+      } else {
+        body =
+          'only one pair in this set probes it, so there is nothing to cross-check it against. Treat it as low-confidence signal — worth having one story ready, but do not over-read a single data point either way.';
+      }
+      return '<li>' + head + ' — ' + body + '</li>';
+    }
+
+    var items =
+      strong.map(function (r) { return li(r, 'strong'); }).join('') +
+      split.map(function (r) { return li(r, 'split'); }).join('') +
+      away.map(function (r) { return li(r, 'away'); }).join('') +
+      single.map(function (r) { return li(r, 'single'); }).join('');
+
+    return (
+      '<h2 class="panel__title" style="margin-top:var(--space-10)">Bar-Raiser read: what this profile signals</h2>' +
+      '<div class="callout">This section will not tell you which statement to pick — there is no scored "right" answer here, and a uniformly impressive-looking profile is itself something a trained interviewer is taught to be skeptical of. What follows is an honest read of the pattern you actually produced, and what to have ready if it gets probed in the loop.</div>' +
+      '<ul class="review" style="padding-left:1.1em;list-style:disc">' +
+      items +
+      '</ul>' +
+      '<p class="explain" style="margin-top:var(--space-4)">Impact on the interviewer: Workstyles itself carries no numeric score, but Bar Raisers and hiring managers typically skim this read-out before the onsite loop and use it to pick which behavioral questions to ask — your strongest leans get the deepest follow-up, and any split gets a direct "tell me about a time you went the other way." The determining factor is never which side you picked; it is whether your answer in the room matches the pattern you produced here.</p>'
     );
   }
 
